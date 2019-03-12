@@ -1,4 +1,4 @@
-package uk.co.openkappa;
+package uk.co.openkappa.encoding;
 
 import java.nio.CharBuffer;
 import java.util.ArrayList;
@@ -41,12 +41,12 @@ public class CharSequenceEncoding extends HashEncoding<CharSequence> {
     assert requiredCapacity < pageSize;
     int hwm = mark == 0 ? 0 : marks[mark - 1] & POSITIVE;
     int pageIndex = (hwm + requiredCapacity) >>> numberOfTrailingZeros(pageSize);
-    int tag = 0;
     if (pageIndex >= pages.size()) {
       pages.add(newBuffer.apply(pageSize));
-      tag = ~POSITIVE;
+      marks[mark] = (pageIndex * pageSize + requiredCapacity) | ~POSITIVE;
+    } else {
+      marks[mark] = (hwm + requiredCapacity);
     }
-    marks[mark] = (hwm + requiredCapacity) | tag;
     CharBuffer page = pages.get(pageIndex);
     for (int i = 0; i < value.length(); ++i) {
       page.put(value.charAt(i));
@@ -72,16 +72,19 @@ public class CharSequenceEncoding extends HashEncoding<CharSequence> {
     return true;
   }
 
-  private CharBuffer slice(int address) {
+  private CharSequence slice(int address) {
     if (address == 0) {
       return pages.get(0).asReadOnlyBuffer().position(0).limit(marks[0] & POSITIVE);
     } else if (marks[address] < 0) {
       int decodedMark = (marks[address] & POSITIVE);
       int pageIndex = decodedMark >>> numberOfTrailingZeros(pageSize);
-      return pages.get(pageIndex).asReadOnlyBuffer().position(0).limit(decodedMark - (marks[address -1] & POSITIVE));
+      return pages.get(pageIndex).asReadOnlyBuffer().position(0).limit(decodedMark - (pageIndex * pageSize));
     } else {
       int pageIndex = marks[address] >>> numberOfTrailingZeros(pageSize);
-      return pages.get(pageIndex).asReadOnlyBuffer().position(marks[address - 1] & POSITIVE).limit(marks[address]);
+      return pages.get(pageIndex)
+              .asReadOnlyBuffer()
+              .position(marks[address - 1] & POSITIVE - (pageIndex * pageSize))
+              .limit(marks[address] - (pageIndex * pageSize));
     }
   }
 }

@@ -1,4 +1,4 @@
-package uk.co.openkappa;
+package uk.co.openkappa.encoding;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -61,12 +61,12 @@ public class BufferHashEncoding<T> extends HashEncoding<T> {
     assert requiredCapacity <= pageSize;
     int hwm = mark == 0 ? 0 : marks[mark - 1] & POSITIVE;
     int pageIndex = (hwm + requiredCapacity) >>> numberOfTrailingZeros(pageSize);
-    int tag = 0;
     if (pageIndex >= pages.size()) {
       pages.add(newBuffer.apply(pageSize));
-      tag = ~POSITIVE;
+      marks[mark] = (pageIndex * pageSize + requiredCapacity) | ~POSITIVE;
+    } else {
+      marks[mark] = (hwm + requiredCapacity);
     }
-    marks[mark] = (hwm + requiredCapacity) | tag;
     pages.get(pageIndex).put(data);
   }
 
@@ -76,10 +76,13 @@ public class BufferHashEncoding<T> extends HashEncoding<T> {
     } else if (marks[address] < 0) {
       int decodedMark = (marks[address] & POSITIVE);
       int pageIndex = decodedMark >>> numberOfTrailingZeros(pageSize);
-      return pages.get(pageIndex).asReadOnlyBuffer().position(0).limit(decodedMark - (marks[address -1] & POSITIVE));
+      return pages.get(pageIndex).asReadOnlyBuffer().position(0).limit(decodedMark - (pageIndex * pageSize));
     } else {
       int pageIndex = marks[address] >>> numberOfTrailingZeros(pageSize);
-      return pages.get(pageIndex).asReadOnlyBuffer().position(marks[address - 1] & POSITIVE).limit(marks[address]);
+      return pages.get(pageIndex)
+              .asReadOnlyBuffer()
+              .position(marks[address - 1] & POSITIVE - (pageIndex * pageSize))
+              .limit(marks[address] - (pageIndex * pageSize));
     }
   }
 }

@@ -1,4 +1,4 @@
-package uk.co.openkappa;
+package uk.co.openkappa.encoding;
 
 import java.util.Arrays;
 import java.util.function.ToIntFunction;

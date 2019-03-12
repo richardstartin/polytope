@@ -1,4 +1,4 @@
-package uk.co.openkappa;
+package uk.co.openkappa.encoding;
 
 public interface Encoding<T> {
 
