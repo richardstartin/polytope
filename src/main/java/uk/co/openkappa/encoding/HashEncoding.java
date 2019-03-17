@@ -5,7 +5,7 @@ import java.util.function.ToIntFunction;
 
 public abstract class HashEncoding<T> implements Encoding<T> {
 
-  static final int MISSING = 0xC0000000;
+  static final int MISSING = -1; //0xC0000000;
 
   private final ToIntFunction<T> hasher;
   private int[] hashes;
@@ -22,13 +22,11 @@ public abstract class HashEncoding<T> implements Encoding<T> {
 
   @Override
   public int encode(T value) {
-    ensureCapacity();
-    int mask = buckets.length - 1;
     int hash = hasher.applyAsInt(value);
-    int bucket = hash & mask;
+    int bucket = hash & (buckets.length - 1);
     int encoding = encode(hash, bucket, value);
     while (encoding == MISSING) {
-      bucket = (bucket + 1) & mask;
+      bucket = (bucket + 1) & (buckets.length - 1);
       encoding = encode(hash, bucket, value);
     }
     return encoding;
@@ -45,6 +43,7 @@ public abstract class HashEncoding<T> implements Encoding<T> {
   private int encode(int hash, int bucket, T value) {
     int encoding = buckets[bucket];
     if (encoding == MISSING) {
+      ensureCapacity();
       insertValue(mark, value);
       hashes[mark] = hash;
       buckets[bucket] = mark;
@@ -52,30 +51,42 @@ public abstract class HashEncoding<T> implements Encoding<T> {
     } else if (hashes[encoding] == hash && isMapped(value, encoding)) {
       return encoding;
     }
+    if (isFull()) {
+      rehash();
+      return encode(hash, hash & (buckets.length - 1), value);
+    }
     return MISSING;
   }
 
   private void ensureCapacity() {
-    if (mark == buckets.length) {
-      int newSize = buckets.length << 1;
-      resize(newSize);
-      int[] rebucketed = new int[newSize];
-      Arrays.fill(rebucketed, MISSING);
-      int oldMask = buckets.length - 1;
-      int newMask = rebucketed.length - 1;
-      for (int hash : hashes) {
-        int pos = hash & newMask;
-        int encoding = buckets[hash & oldMask];
-        while (true) {
-          if (rebucketed[pos] == MISSING) {
-            rebucketed[pos] = encoding;
-            break;
-          }
-          pos = (pos + 1) & newMask;
-        }
-      }
-      buckets = rebucketed;
-      hashes = Arrays.copyOf(hashes, newSize);
+    if (isFull()) {
+      rehash();
     }
+  }
+
+  private boolean isFull() {
+    return mark == buckets.length;
+  }
+
+  private void rehash() {
+    int newSize = buckets.length << 1;
+    resize(newSize);
+    int[] rebucketed = new int[newSize];
+    Arrays.fill(rebucketed, MISSING);
+    int newMask = rebucketed.length - 1;
+    for (int i = 0; i < buckets.length; ++i) {
+      int hash = hashes[i];
+      int encoding = buckets[i];
+      int pos = hash & newMask;
+      while (true) {
+        if (rebucketed[pos] == MISSING) {
+          rebucketed[pos] = encoding;
+          break;
+        }
+        pos = (pos + 1) & newMask;
+      }
+    }
+    buckets = rebucketed;
+    hashes = Arrays.copyOf(hashes, newSize);
   }
 }

@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestIntEncoding {
+
   public static Stream<Arguments> encodings() {
     return Stream.of(
             Arguments.of(IntStream.range(0, 1_000_000), new ArrayIntEncoding(Object::hashCode, 2)),
@@ -24,7 +25,16 @@ public class TestIntEncoding {
             Arguments.of(IntStream.range(0, 1_000_000), new BufferIntEncoding(Object::hashCode, 0, 1024, ByteBuffer::allocateDirect)),
             Arguments.of(IntStream.range(0, 1_000_000), new BufferIntEncoding(Object::hashCode, 2, 8, ByteBuffer::allocateDirect)),
             Arguments.of(IntStream.range(0, 1_000_000), new BufferIntEncoding(Object::hashCode, 1, 8, ByteBuffer::allocateDirect)),
-            Arguments.of(IntStream.range(0, 1_000_000), new BufferIntEncoding(Object::hashCode, 0, 8, ByteBuffer::allocateDirect))
+            Arguments.of(IntStream.range(0, 1_000_000), new BufferIntEncoding(Object::hashCode, 0, 8, ByteBuffer::allocateDirect)),
+            Arguments.of(IntStream.range(0, 30).map(i -> 1 << i), new ArrayIntEncoding(Object::hashCode, 10)),
+            Arguments.of(IntStream.range(0, 30).map(i -> 1 << i), new ArrayIntEncoding(Object::hashCode, 10)),
+            Arguments.of(IntStream.range(0, 30).map(i -> 1 << i), new ArrayIntEncoding(Object::hashCode, 10)),
+            Arguments.of(IntStream.range(0, 30).map(i -> 1 << i), new BufferIntEncoding(Object::hashCode, 10, 1024, ByteBuffer::allocateDirect)),
+            Arguments.of(IntStream.range(0, 30).map(i -> 1 << i), new BufferIntEncoding(Object::hashCode, 10, 1024, ByteBuffer::allocateDirect)),
+            Arguments.of(IntStream.range(0, 30).map(i -> 1 << i), new BufferIntEncoding(Object::hashCode, 10, 1024, ByteBuffer::allocateDirect)),
+            Arguments.of(IntStream.range(0, 30).map(i -> 1 << i), new BufferIntEncoding(Object::hashCode, 10, 8, ByteBuffer::allocateDirect)),
+            Arguments.of(IntStream.range(0, 30).map(i -> 1 << i), new BufferIntEncoding(Object::hashCode, 10, 8, ByteBuffer::allocateDirect)),
+            Arguments.of(IntStream.range(0, 30).map(i -> 1 << i), new BufferIntEncoding(Object::hashCode, 10, 8, ByteBuffer::allocateDirect))
     );
   }
 
