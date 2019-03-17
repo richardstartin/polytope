@@ -16,9 +16,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class TestIntEncoding {
   public static Stream<Arguments> encodings() {
     return Stream.of(
-            Arguments.of(IntStream.range(0, 1_000_000), new IntEncoding(Object::hashCode, 2)),
-            Arguments.of(IntStream.range(0, 1_000_000), new IntEncoding(Object::hashCode, 1)),
-            Arguments.of(IntStream.range(0, 1_000_000), new IntEncoding(Object::hashCode, 0)),
+            Arguments.of(IntStream.range(0, 1_000_000), new ArrayIntEncoding(Object::hashCode, 2)),
+            Arguments.of(IntStream.range(0, 1_000_000), new ArrayIntEncoding(Object::hashCode, 1)),
+            Arguments.of(IntStream.range(0, 1_000_000), new ArrayIntEncoding(Object::hashCode, 0)),
             Arguments.of(IntStream.range(0, 1_000_000), new BufferIntEncoding(Object::hashCode, 2, 1024, ByteBuffer::allocateDirect)),
             Arguments.of(IntStream.range(0, 1_000_000), new BufferIntEncoding(Object::hashCode, 1, 1024, ByteBuffer::allocateDirect)),
             Arguments.of(IntStream.range(0, 1_000_000), new BufferIntEncoding(Object::hashCode, 0, 1024, ByteBuffer::allocateDirect)),

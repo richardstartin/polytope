@@ -8,7 +8,7 @@ import java.util.function.ToIntFunction;
 
 import static java.lang.Integer.numberOfTrailingZeros;
 
-public class BufferLongEncoding extends HashEncoding<Long> {
+public class BufferLongEncoding extends HashEncoding<Long> implements LongEncoding {
 
   private final IntFunction<ByteBuffer> newBuffer;
   private final List<ByteBuffer> pages;
@@ -43,6 +43,11 @@ public class BufferLongEncoding extends HashEncoding<Long> {
 
   @Override
   public Long decode(int encoding) {
+    return decodeAsLong(encoding);
+  }
+
+  @Override
+  public long decodeAsLong(int encoding) {
     int valuesPerPage = pageSize >>> 3;
     int pageIndex = encoding >>> numberOfTrailingZeros(valuesPerPage);
     int valueIndex = (encoding & (valuesPerPage - 1)) << 3;

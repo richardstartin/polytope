@@ -17,9 +17,9 @@ public class TestLongEncoding {
 
   public static Stream<Arguments> encodings() {
     return Stream.of(
-            Arguments.of(LongStream.range(0, 1_000_000), new LongEncoding(Object::hashCode, 2)),
-            Arguments.of(LongStream.range(0, 1_000_000), new LongEncoding(Object::hashCode, 1)),
-            Arguments.of(LongStream.range(0, 1_000_000), new LongEncoding(Object::hashCode, 0)),
+            Arguments.of(LongStream.range(0, 1_000_000), new ArrayLongEncoding(Object::hashCode, 2)),
+            Arguments.of(LongStream.range(0, 1_000_000), new ArrayLongEncoding(Object::hashCode, 1)),
+            Arguments.of(LongStream.range(0, 1_000_000), new ArrayLongEncoding(Object::hashCode, 0)),
             Arguments.of(LongStream.range(0, 1_000_000), new BufferLongEncoding(Object::hashCode, 2, 1024, ByteBuffer::allocateDirect)),
             Arguments.of(LongStream.range(0, 1_000_000), new BufferLongEncoding(Object::hashCode, 1, 1024, ByteBuffer::allocateDirect)),
             Arguments.of(LongStream.range(0, 1_000_000), new BufferLongEncoding(Object::hashCode, 0, 1024, ByteBuffer::allocateDirect)),
